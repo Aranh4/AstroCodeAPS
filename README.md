@@ -1,5 +1,4 @@
 # AstroCodeAPS
-https://jacquev6.github.io/DrawGrammar/
 EBNF:
 
 
