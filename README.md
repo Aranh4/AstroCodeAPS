@@ -8,27 +8,30 @@ BLOCK = { STATEMENT } ;
 
 STATEMENT = ( MODULE_DECLARATION | ASSIGNMENT | TRANSMIT_PRINT | ORBIT_WHILE | CHECK_IF ), "\n" ;
 
-MODULE_DECLARATION = "module", IDENTIFIER, ["set", SPACE_EXP] ;
+MODULE_DECLARATION = "module", IDENTIFIER, ["set", BOOL_EXP] ;
 
-ASSIGNMENT = IDENTIFIER, "set", SPACE_EXP ;
+ASSIGNMENT = IDENTIFIER, "set", BOOL_EXP ;
 
-SPACE_EXP = EXP ;
+BOOL_EXP = BOOL_TERM,{("either"),BOOL_TERM};
 
-EXP = TERM, { ("increase" | "decrease"), TERM } ;
+BOOL_TERM = REL_EXP,{("also"), REL_EXP};
+
+REL_EXP = EXP,{("matches"|"exceeds"|"below"),EXP}
+
+EXP = TERM, { ("increase" | "decrease","join with"), TERM } ;
 
 TERM = FACTOR, { ("multiply by" | "divide by"), FACTOR } ;
 
-FACTOR = INTEGER | IDENTIFIER | "(" , EXP , ")" | UNARY_OP, FACTOR ;
+FACTOR = INTEGER | IDENTIFIER | "(" , BOOL_EXP , ")" | UNARY_OP, FACTOR ;
 
-TRANSMIT_PRINT = "transmit", "(", SPACE_EXP, ")" ;
+TRANSMIT_PRINT = "transmit", "(", BOOL_EXP, ")" ;
 
-ORBIT_WHILE = "orbit", SPACE_EXP, "do", "\n", { STATEMENT }, "end" ;
+ORBIT_WHILE = "orbit", BOOL_EXP, "do", "\n", { STATEMENT }, "end" ;
 
-CHECK_IF = "check", SPACE_EXP, "then", "\n", { STATEMENT }, "end" ;
+CHECK_IF = "check", BOOL_EXP, "then", "\n", { STATEMENT }, "end" ;
 
 TYPE = "int" | "string" | "coordinates" | "velocity" ;
 
-LOGIC_OP = "also" | "either" | "negate" ;
 
 COMPARE_OP = "exceeds" | "below" | "matches" ;
 
@@ -36,7 +39,7 @@ INTEGER = DIGIT, { DIGIT } ;
 
 IDENTIFIER = LETTER, { LETTER | DIGIT | "_" } ;
 
-UNARY_OP = "negate" | "-" ;
+UNARY_OP = "negative" | "positive" | "negate"  ;
 
 DIGIT = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
 
