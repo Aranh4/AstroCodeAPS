@@ -1,0 +1,64 @@
+launch
+
+-- Declaração de módulo com atribuição inicial
+module speed set 10
+transmit(speed)  -- Deve imprimir: 10
+
+-- Atribuição direta
+speed set 20
+transmit(speed)  -- Deve imprimir: 20
+
+-- Loop (while) com condição 'below' e incremento
+orbit speed below 25 do
+    speed set speed increase 1
+    transmit(speed)
+end
+-- Deve imprimir: 21, 22, 23, 24, 25
+
+-- Declaração de módulo sem atribuição inicial
+module counter
+
+-- Atribuição e impressão
+counter set 0
+transmit(counter)  -- Deve imprimir: 0
+
+-- Condição (if) com condição 'below'
+check counter below 5 then
+    transmit(counter)  -- Deve imprimir: 0
+    counter set counter increase 1
+end
+
+-- Condição (if) com condição 'matches' e bloco 'else'
+check counter matches 1 then
+    transmit(counter)  -- Deve imprimir: 1
+else
+    transmit(counter)  -- Não deve ser executado
+end
+
+-- Operações aritméticas e lógicas
+speed set 5 increase 10  -- speed = 15
+transmit(speed)  -- Deve imprimir: 15
+
+speed set speed divide by 3  -- speed = 5
+transmit(speed)  -- Deve imprimir: 5
+
+counter set counter multiply by 2  -- counter = 2
+transmit(counter)  -- Deve imprimir: 2
+
+-- Negação lógica e operação aritmética unária
+counter set negate counter  -- counter = -2
+transmit(counter)  -- Deve imprimir: -2
+
+-- Loop (while) com condição 'exceeds' e decremento
+orbit counter exceeds -5 do
+    counter set counter decrease 1
+    transmit(counter)
+end
+-- Deve imprimir: -3, -4, -5
+
+-- Condição (if) com condição 'below' e operação 'also'
+check counter below 0 also speed matches 5 then
+    transmit(counter)  -- Deve imprimir: -5
+    transmit(speed)  -- Deve imprimir: 5
+end
+cle
