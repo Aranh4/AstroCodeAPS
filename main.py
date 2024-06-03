@@ -81,7 +81,11 @@ class Tokenizer:
             elif self.source[self.position:self.position + 10] == "multiply by":
                 self.position += 10
                 self.next = Token("MULTIPLY_BY", "multiply by")
-            elif self.source[self.position:self.position + 8] == "divide by":
+            elif self.source[self.position] == "-":
+                self.position += 1
+                self.next = Token("-", "-")
+            
+            elif self.source[self.position:self.position + 10] == "divide by":
                 self.position += 8
                 self.next = Token("DIVIDE_BY", "divide by")
             elif self.source[self.position:self.position + 6] == "negate":
@@ -115,6 +119,18 @@ class Tokenizer:
                 value = self.source[start:self.position]
                 if value in self.keywords:
                     self.next = Token(value.upper(), value)
+                elif value =="divide":
+                    self.position+=1
+                    if self.source[self.position: self.position + 2] == "by":
+                        self.position += 2
+                        self.next = Token("DIVIDE_BY", "divide by")
+
+                elif value =="multiply":
+                    self.position+=1
+                    if self.source[self.position: self.position + 2] == "by":
+                        self.position += 2
+                        self.next = Token("MULTIPLY_BY", "multiply by")
+                    
                 else:
                     self.next = Token("IDENT", value)
             elif self.source[self.position] == "(":
@@ -124,10 +140,12 @@ class Tokenizer:
                 self.position += 1
                 self.next = Token("RPAREN", ")")
             else:
-                sys.stderr.write("linha:"+ linha.get()+  ": Invalid token at position {self.position}: {self.source[self.position]}\n")
+                sys.stderr.write(f"linha:"+ linha.get()+  ": Invalid token = at position "+str(self.position) + ":" +self.source[self.position]+  "\n")
                 self.position += 1
                 self.selectNext()
             
+            
+
 class Parser:
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer
@@ -142,22 +160,27 @@ class Parser:
                 block = Parser.parseBlock(tokenizer)
                 return Program("program", [block])
             else:
-                sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after LAUNCH\n")
+                sys.stderr.write("Syntax error: Expected NEWLINE after LAUNCH (parseProgram)\n")
         else:
-            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected LAUNCH\n")
+            sys.stderr.write("Syntax error: Expected LAUNCH (parseProgram)\n")
 
     @staticmethod
     def parseBlock(tokenizer):
         statements = []
         while tokenizer.next.type not in ["EOF", "END"]:
-            statements.append(Parser.parseStatement(tokenizer))
             if tokenizer.next.type == "NEWLINE":
                 tokenizer.selectNext()
             else:
-                sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement and received:"+ tokenizer.next.type +"\n")
+                statements.append(Parser.parseStatement(tokenizer))
+                if tokenizer.next.type == "NEWLINE":
+                    tokenizer.selectNext()
+                elif tokenizer.next.type == "EOF":
+                    break
+                else:
+                    sys.stderr.write("linha:" + str(tokenizer.position) + ": Syntax error: Expected NEWLINE after statement (parseBlock)\n")
+                    sys.exit(1)
         return Block("block", statements)
 
-    @staticmethod
     @staticmethod
     def parseStatement(tokenizer):
         if tokenizer.next.type == "MODULE":
@@ -169,14 +192,15 @@ class Parser:
                     tokenizer.selectNext()
                     exp = Parser.parseBoolExpression(tokenizer)
                     if tokenizer.next.type != "NEWLINE":
-                        sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
+                        sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement MODULE)\n")
                     return VarDecl("module", [identifier, exp])
                 else:
                     if tokenizer.next.type != "NEWLINE":
-                        sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
+                        sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement MODULE)\n")
+                      # Move to the next token
                     return VarDecl("module", [identifier])
             else:
-                sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected IDENT after MODULE\n")
+                sys.stderr.write("Syntax error: Expected IDENT after MODULE (parseStatement MODULE)\n")
 
         elif tokenizer.next.type == "IDENT":
             identifier = Identifier(tokenizer.next.value)
@@ -185,10 +209,12 @@ class Parser:
                 tokenizer.selectNext()
                 exp = Parser.parseBoolExpression(tokenizer)
                 if tokenizer.next.type != "NEWLINE":
-                    sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
+                    sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement IDENT)"+ "recebido: " + tokenizer.next.type + " valor: " + tokenizer.next.value + "\n")
+                    sys.exit(1)
                 return Assignment("set", [identifier, exp])
             else:
-                sys.stderr.write("Syntax error: Expected SET after IDENT\n")
+                print(linha.get())
+                sys.stderr.write("Syntax error: Expected SET after IDENT (parseStatement IDENT)\n")
 
         elif tokenizer.next.type == "TRANSMIT":
             tokenizer.selectNext()
@@ -198,12 +224,12 @@ class Parser:
                 if tokenizer.next.type == "RPAREN":
                     tokenizer.selectNext()
                     if tokenizer.next.type != "NEWLINE":
-                        sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
+                        sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement TRANSMIT)\n")
                     return Print("transmit", [exp])
                 else:
-                    sys.stderr.write("Syntax error: Expected RPAREN after TRANSMIT expression\n")
+                    sys.stderr.write("Syntax error: Expected RPAREN after TRANSMIT expression (parseStatement TRANSMIT)\n")
             else:
-                sys.stderr.write("Syntax error: Expected LPAREN after TRANSMIT\n")
+                sys.stderr.write("Syntax error: Expected LPAREN after TRANSMIT (parseStatement TRANSMIT)\n")
 
         elif tokenizer.next.type == "ORBIT":
             tokenizer.selectNext()
@@ -216,14 +242,15 @@ class Parser:
                     if tokenizer.next.type == "END":
                         tokenizer.selectNext()
                         if tokenizer.next.type != "NEWLINE":
-                            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
+                            sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement ORBIT)\n")
+                          # Move to the next token
                         return While("orbit", [exp, block])
                     else:
-                        sys.stderr.write("Syntax error: Expected END after ORBIT block\n")
+                        sys.stderr.write("Syntax error: Expected END after ORBIT block (parseStatement ORBIT)\n")
                 else:
-                    sys.stderr.write("Syntax error: Expected NEWLINE after DO in ORBIT\n")
+                    sys.stderr.write("Syntax error: Expected NEWLINE after DO in ORBIT (parseStatement ORBIT)\n")
             else:
-                sys.stderr.write("Syntax error: Expected DO after ORBIT expression\n")
+                sys.stderr.write("Syntax error: Expected DO after ORBIT expression (parseStatement ORBIT)\n")
 
         elif tokenizer.next.type == "CHECK":
             tokenizer.selectNext()
@@ -235,23 +262,22 @@ class Parser:
                     block = Parser.parseBlock(tokenizer)
                     if tokenizer.next.type == "END":
                         tokenizer.selectNext()
-                        if tokenizer.next.type != "NEWLINE":
-                            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
+                        if tokenizer.next.type != "NEWLINE" and tokenizer.next.type != "EOF":
+                            sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement CHECK)\n" + "recebido: " + tokenizer.next.type + " valor: " + tokenizer.next.value + "\n")
+                      
                         return If("check", [exp, block])
                     else:
-                        sys.stderr.write("Syntax error: Expected END after CHECK block\n")
+                        sys.stderr.write("Syntax error: Expected END after CHECK block (parseStatement CHECK)\n")
                 else:
-                    sys.stderr.write("Syntax error: Expected NEWLINE after THEN in CHECK\n")
+                    sys.stderr.write("Syntax error: Expected NEWLINE after THEN in CHECK (parseStatement CHECK)\n")
             else:
-                sys.stderr.write("Syntax error: Expected THEN after CHECK expression\n")
+                sys.stderr.write("Syntax error: Expected THEN after CHECK expression (parseStatement CHECK)\n")
 
         else:
-            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Invalid statement\n")
+            sys.stderr.write("Syntax error: Invalid statement (parseStatement)\n")
 
         if tokenizer.next.type != "NEWLINE":
-            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected NEWLINE after statement\n")
-
-
+            sys.stderr.write("Syntax error: Expected NEWLINE after statement (parseStatement)\n")
 
     @staticmethod
     def parseBoolExpression(tokenizer):
@@ -275,13 +301,13 @@ class Parser:
         while tokenizer.next.type in ["EXCEEDS", "BELOW", "MATCHES"]:
             if tokenizer.next.type == "EXCEEDS":
                 tokenizer.selectNext()
-                res = BinOp("exceeds", [res, Parser.parseTerm(tokenizer)])
+                res = BinOp("exceeds", [res, Parser.parseExpression(tokenizer)])
             elif tokenizer.next.type == "BELOW":
                 tokenizer.selectNext()
-                res = BinOp("below", [res, Parser.parseTerm(tokenizer)])
+                res = BinOp("below", [res, Parser.parseExpression(tokenizer)])
             elif tokenizer.next.type == "MATCHES":
                 tokenizer.selectNext()
-                res = BinOp("matches", [res, Parser.parseTerm(tokenizer)])
+                res = BinOp("matches", [res, Parser.parseExpression(tokenizer)])
         return res
 
     @staticmethod
@@ -325,14 +351,14 @@ class Parser:
                 tokenizer.selectNext()
                 return res
             else:
-                sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected RPAREN\n")
+                sys.stderr.write("Syntax error: Expected RPAREN (parseFactor)\n")
         elif tokenizer.next.type in ["NEGATE", "-"]:
             op = tokenizer.next.type
             tokenizer.selectNext()
             res = UnOp(op, [Parser.parseFactor(tokenizer)])
             return res
         else:
-            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Invalid factor\n")
+            sys.stderr.write("Syntax error: Invalid factor (parseFactor)\n")
             return NoOp()
 
     @staticmethod
@@ -342,7 +368,7 @@ class Parser:
         parser = Parser(tokenizer)
         result = parser.parseProgram(tokenizer)
         if parser.tokenizer.next.type != "EOF":
-            sys.stderr.write("linha:"+ linha.get()+ ": Syntax error: Expected EOF\n")
+            sys.stderr.write("Syntax error: Expected EOF (run)\n")
         else:
             return result
 
@@ -475,7 +501,8 @@ class Block(Node):
 
     def evaluate(self, ST):
         for child in self.children:
-            child.evaluate(ST)
+            if child is not None:
+                child.evaluate(ST)
 
 
 class SymbolTable:
