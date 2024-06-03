@@ -1,0 +1,11 @@
+launch
+module x set 10
+module y set (20 increase 5)
+transmit(x increase y)
+orbit x below 50 do
+    x set x increase 1
+    transmit(x)
+end
+check x exceeds 50 then
+    transmit("x is greater than 50")
+end
