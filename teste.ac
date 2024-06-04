@@ -28,10 +28,11 @@ check counter below 5 then
     counter set counter increase 1
 end
 
--- Condição (if) com condição 'matches' e bloco 'else'
+-- Condição (if) com condição 'matches' 
 check counter matches 1 then
     transmit(counter)  -- Deve imprimir: 1
 end
+
 -- Operações aritméticas e lógicas
 speed set 5 increase 10  -- speed = 15
 transmit(speed)  -- Deve imprimir: 15
