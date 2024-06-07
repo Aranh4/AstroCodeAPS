@@ -1,6 +1,14 @@
-# AstroCodeAPS
-EBNF:
+# AstroCode - APSLogComp
 
+AstroCode é uma linguagem de programação desenvolvida para simplificar a criação de programas através de uma sintaxe intuitiva e estruturas claras. Inspirada por conceitos de engenharia espacial e missões astronauticas, esta linguagem visa facilitar o aprendizado de programação e a implementação de algoritmos básicos de controle e decisão em contextos espaciais. AstroCodeAPS é ideal para iniciantes e para aqueles que desejam uma abordagem mais visual e estruturada na codificação, especialmente em simulações e operações espaciais.
+
+### Motivação
+
+A criação de AstroCodeAPS foi motivada pela necessidade de uma linguagem que combinasse simplicidade e funcionalidade, especialmente voltada para contextos de engenharia espacial e missões de astronautas. A linguagem utiliza terminologias e estruturas familiares ao ambiente espacial, tornando o processo de aprendizagem mais contextualizado e relevante para profissionais e entusiastas da área. Com AstroCodeAPS, é possível simular algoritmos de controle de naves, monitoramento de condições e decisões críticas de maneira intuitiva e acessível.
+
+### EBNF:
+
+``` ebnf
 PROGRAM = "launch", "\n", BLOCK ;
 
 BLOCK = { STATEMENT } ;
@@ -11,17 +19,15 @@ MODULE_DECLARATION = "module", IDENTIFIER, ["set", BOOL_EXP] ;
 
 ASSIGNMENT = IDENTIFIER, "set", BOOL_EXP ;
 
-BOOL_EXP = BOOL_TERM,{("either"),BOOL_TERM};
+BOOL_EXP = BOOL_TERM, { "either", BOOL_TERM } ;
 
-BOOL_TERM = REL_EXP,{("also"), REL_EXP};
+BOOL_TERM = REL_EXP, { "also", REL_EXP } ;
 
-REL_EXP = EXP,{("matches"|"exceeds"|"below"),EXP}
+REL_EXP = EXP, { ("matches" | "exceeds" | "below"), EXP } ;
 
-EXP = TERM, { ("increase" | "decrease","join with"), TERM } ;
+EXP = TERM, { ("increase" | "decrease"), TERM } ;
 
-BOOL_TERM = REL_EXPRESSION, { ("also"), REL_EXPRESSION } ;
-
-FACTOR = INTEGER | IDENTIFIER | "(" , BOOL_EXP , ")" | UNARY_OP, FACTOR ;
+FACTOR = INTEGER | IDENTIFIER | "(", BOOL_EXP, ")" | UNARY_OP, FACTOR ;
 
 TRANSMIT_PRINT = "transmit", "(", BOOL_EXP, ")" ;
 
@@ -29,21 +35,19 @@ ORBIT_WHILE = "orbit", BOOL_EXP, "do", "\n", { STATEMENT }, "end" ;
 
 CHECK_IF = "check", BOOL_EXP, "then", "\n", { STATEMENT }, "end" ;
 
-ORBIT_WHILE = "orbit", EXP, "do", "\n", BLOCK, "end" ;
-
-
-UNARY_OP = "negate" | "-" ;
+UNARY_OP = "negative" | "positive" | "negate" ;
 
 INTEGER = DIGIT, { DIGIT } ;
 
 IDENTIFIER = LETTER, { LETTER | DIGIT | "_" } ;
 
-UNARY_OP = "negative" | "positive" | "negate"  ;
-
 DIGIT = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
 
-LETTER = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+LETTER = "A...Z" | "a...z" ;
 
+```
 
-DIAGRAMA:
+Diagrama
+Abaixo está o diagrama da estrutura da linguagem AstroCodeAPS:
+
 <img src='diagrama.jpg'>
